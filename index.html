@@ -1,0 +1,3163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0F172A" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Sanctuary Keys — Felt Piano &amp; Warm Pad</title>
+
+  <!-- Estilos 100% autocontenidos para garantizar funcionamiento inmediato sin conexión en Android Chrome -->
+  <style>
+    :root {
+      --bg-main: #0F172A;
+      --bg-panel: #162033;
+      --bg-card: #1E293B;
+      --bg-card-hover: #26354D;
+      --border-subtle: rgba(148, 163, 184, 0.16);
+      --border-warm: rgba(245, 158, 11, 0.55);
+      --border-teal: rgba(56, 189, 248, 0.36);
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --accent-warm: #F59E0B;
+      --accent-warm-soft: rgba(245, 158, 11, 0.18);
+      --accent-teal: #38BDF8;
+      --accent-teal-soft: rgba(56, 189, 248, 0.15);
+      --accent-green: #10B981;
+      --accent-red: #EF4444;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+      touch-action: manipulation;
+    }
+
+    /* ================= NOTIFICACIÓN FLOTANTE (SIN ALERT) ================= */
+    #toastBox {
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-18px);
+      z-index: 1400;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid var(--border-warm);
+      color: #FEF3C7;
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.24s ease, transform 0.24s ease;
+      white-space: nowrap;
+      max-width: 92vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #toastBox.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ================= OVERLAY INICIAL DE ACTIVACIÓN DE AUDIO ================= */
+    #startOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: radial-gradient(circle at 50% 34%, #1E293B 0%, #0F172A 76%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    #startOverlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .brand-icon {
+      width: 78px;
+      height: 78px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.24), rgba(245, 158, 11, 0.05));
+      border: 1px solid var(--border-warm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      box-shadow: 0 0 40px rgba(245, 158, 11, 0.22);
+    }
+
+    .brand-icon svg {
+      width: 40px;
+      height: 40px;
+      color: var(--accent-warm);
+    }
+
+    .overlay-subtitle {
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent-warm);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    #startOverlay h1 {
+      font-size: clamp(1.65rem, 3.2vw, 2.3rem);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      margin-bottom: 10px;
+    }
+
+    #startOverlay p {
+      max-width: 540px;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.55;
+      margin-bottom: 24px;
+    }
+
+    #btnStartAudio {
+      background: linear-gradient(135deg, #F59E0B, #D97706);
+      color: #0F172A;
+      border: none;
+      border-radius: 16px;
+      padding: 19px 40px;
+      font-size: 1.16rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 12px 34px rgba(245, 158, 11, 0.36);
+      transition: transform 0.12s ease, box-shadow 0.2s ease;
+    }
+
+    #btnStartAudio:hover {
+      box-shadow: 0 14px 40px rgba(245, 158, 11, 0.5);
+    }
+
+    #btnStartAudio:active {
+      transform: scale(0.97);
+    }
+
+    .start-hint {
+      margin-top: 18px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      max-width: 520px;
+      line-height: 1.45;
+    }
+
+    /* ================= MODAL DE DIAGNÓSTICO MIDI EN TIEMPO REAL ================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      background: rgba(2, 6, 23, 0.78);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+
+    .modal-backdrop.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 640px;
+      max-height: 90dvh;
+      overflow-y: auto;
+      background: var(--bg-panel);
+      border: 1px solid rgba(148, 163, 184, 0.26);
+      border-radius: 18px;
+      padding: 18px 20px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 10px;
+    }
+
+    .modal-title {
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-close-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      border-radius: 10px;
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .modal-close-btn:hover {
+      background: var(--bg-card-hover);
+      color: var(--text-primary);
+    }
+
+    .diag-alert {
+      padding: 11px 13px;
+      border-radius: 12px;
+      font-size: 0.81rem;
+      line-height: 1.45;
+      border: 1px solid rgba(245, 158, 11, 0.48);
+      background: rgba(245, 158, 11, 0.13);
+      color: #FDE68A;
+      display: none;
+    }
+
+    .diag-alert.show {
+      display: block;
+    }
+
+    .diag-alert.ok {
+      border-color: rgba(16, 185, 129, 0.42);
+      background: rgba(16, 185, 129, 0.12);
+      color: #D1FAE5;
+    }
+
+    .diag-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .diag-item {
+      background: rgba(15, 23, 42, 0.62);
+      border: 1px solid var(--border-subtle);
+      border-radius: 11px;
+      padding: 9px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .diag-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .diag-val {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      word-break: break-word;
+    }
+
+    .diag-val.good { color: #34D399; }
+    .diag-val.warn { color: #FBBF24; }
+    .diag-val.bad  { color: #F87171; }
+
+    .diag-section-title {
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .diag-box {
+      background: #0B1220;
+      border: 1px solid var(--border-subtle);
+      border-radius: 11px;
+      padding: 10px 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.76rem;
+      color: #CBD5E1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-height: 54px;
+    }
+
+    .diag-port-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 5px 7px;
+      border-radius: 7px;
+      background: rgba(30, 41, 59, 0.55);
+      flex-wrap: wrap;
+    }
+
+    .diag-port-meta {
+      font-size: 0.7rem;
+      color: var(--accent-teal);
+    }
+
+    .diag-event-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      padding-bottom: 4px;
+    }
+
+    .diag-event-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .diag-time {
+      color: var(--text-muted);
+      font-size: 0.7rem;
+    }
+
+    .diag-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-rescan {
+      flex: 1;
+      min-width: 190px;
+      padding: 11px 16px;
+      border-radius: 11px;
+      border: 1px solid var(--border-teal);
+      background: rgba(56, 189, 248, 0.16);
+      color: #E0F2FE;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-rescan:hover {
+      background: rgba(56, 189, 248, 0.26);
+    }
+
+    .btn-rescan:active {
+      transform: scale(0.98);
+    }
+
+    /* ================= LAYOUT PRINCIPAL 100DVH (TABLET HORIZONTAL) ================= */
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100dvh;
+      padding: 8px 12px;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 7px 12px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .app-title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-weight: 700;
+      font-size: 0.96rem;
+      letter-spacing: -0.015em;
+      white-space: nowrap;
+    }
+
+    .app-title-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent-warm);
+      box-shadow: 0 0 10px var(--accent-warm);
+    }
+
+    .status-group {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    .pill-btn {
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .pill-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-teal);
+      color: var(--text-primary);
+    }
+
+    .pill-btn:active {
+      transform: scale(0.97);
+    }
+
+    .pill.connected {
+      border-color: rgba(16, 185, 129, 0.52);
+      color: #D1FAE5;
+      background: rgba(16, 185, 129, 0.14);
+    }
+
+    .pill.warn {
+      border-color: rgba(245, 158, 11, 0.5);
+      color: #FDE68A;
+      background: rgba(245, 158, 11, 0.12);
+    }
+
+    .pill.active-warm {
+      border-color: var(--border-warm);
+      color: #FEF3C7;
+      background: var(--accent-warm-soft);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .pill.connected .status-dot {
+      background: var(--accent-green);
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+
+    .pill.warn .status-dot {
+      background: var(--accent-warm);
+    }
+
+    .midi-led {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #334155;
+      transition: background 0.06s ease, box-shadow 0.06s ease;
+    }
+
+    .midi-led.flash {
+      background: var(--accent-warm);
+      box-shadow: 0 0 9px var(--accent-warm);
+    }
+
+    .top-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 10px;
+      border-radius: 9px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.14s ease;
+      white-space: nowrap;
+    }
+
+    .top-btn:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .top-btn:active {
+      transform: scale(0.96);
+    }
+
+    .top-btn.active {
+      background: var(--accent-warm-soft);
+      border-color: var(--border-warm);
+      color: #FDE68A;
+    }
+
+    .top-btn.teal-btn {
+      border-color: var(--border-teal);
+      background: rgba(56, 189, 248, 0.12);
+      color: #BAE6FD;
+    }
+
+    .top-btn.teal-btn:hover {
+      background: rgba(56, 189, 248, 0.22);
+    }
+
+    .top-btn.subtle-save {
+      color: var(--text-secondary);
+      border-color: rgba(148, 163, 184, 0.22);
+      background: rgba(30, 41, 59, 0.65);
+    }
+
+    .top-btn.subtle-save:hover {
+      color: #E0F2FE;
+      border-color: var(--border-teal);
+      background: rgba(56, 189, 248, 0.14);
+    }
+
+    .top-btn.danger:hover {
+      border-color: rgba(239, 68, 68, 0.48);
+      color: #FECACA;
+    }
+
+    .top-btn.danger:active {
+      background: rgba(239, 68, 68, 0.25);
+    }
+
+    /* ================= ESPACIO CENTRAL: WARM PAD + MEZCLADOR ================= */
+    .workspace {
+      display: grid;
+      grid-template-columns: 1.08fr 1.12fr;
+      gap: 8px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .panel-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pad-state-label {
+      font-size: 0.76rem;
+      color: var(--accent-warm);
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .mode-switch {
+      display: inline-flex;
+      background: #0B1220;
+      border-radius: 10px;
+      padding: 3px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .mode-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 0.74rem;
+      font-weight: 600;
+      padding: 5px 11px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+
+    .mode-btn.active {
+      background: var(--accent-warm);
+      color: #0F172A;
+      box-shadow: 0 2px 10px rgba(245, 158, 11, 0.32);
+    }
+
+    .pad-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 7px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .pad-key {
+      position: relative;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.1s ease, background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+      min-height: 44px;
+    }
+
+    .pad-key:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(245, 158, 11, 0.34);
+    }
+
+    .pad-key:active {
+      transform: scale(0.96);
+    }
+
+    .pad-key .note-main {
+      font-size: clamp(1.05rem, 2.0vw, 1.42rem);
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .pad-key .note-alt {
+      font-size: 0.69rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    .pad-key.active {
+      background: linear-gradient(145deg, rgba(245, 158, 11, 0.32), rgba(217, 119, 6, 0.14));
+      border-color: var(--accent-warm);
+      box-shadow: 0 0 22px rgba(245, 158, 11, 0.26), inset 0 0 12px rgba(245, 158, 11, 0.11);
+      color: #FEF3C7;
+    }
+
+    .pad-key.active .note-alt {
+      color: #FCD34D;
+    }
+
+    .pad-key.active::after {
+      content: "";
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-warm);
+      box-shadow: 0 0 8px var(--accent-warm);
+      animation: breathe 2.8s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0%, 100% { opacity: 0.42; transform: scale(0.86); }
+      50% { opacity: 1; transform: scale(1.22); }
+    }
+
+    .pad-footer {
+      margin-top: 8px;
+      flex-shrink: 0;
+    }
+
+    #btnStopPad {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(239, 68, 68, 0.38);
+      background: rgba(239, 68, 68, 0.12);
+      color: #FCA5A5;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+    }
+
+    #btnStopPad:hover:not(:disabled) {
+      background: rgba(239, 68, 68, 0.2);
+    }
+
+    #btnStopPad:active:not(:disabled) {
+      transform: scale(0.985);
+    }
+
+    #btnStopPad:disabled {
+      opacity: 0.4;
+      cursor: default;
+      border-color: var(--border-subtle);
+      background: rgba(30, 41, 59, 0.45);
+      color: var(--text-muted);
+    }
+
+    /* ================= MEZCLADOR 2x3 COMPACTO Y TÁCTIL ================= */
+    .mixer-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 7px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .fader-card {
+      background: rgba(15, 23, 42, 0.58);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 8px 11px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      min-height: 0;
+    }
+
+    .fader-card.pad-card {
+      border-color: rgba(245, 158, 11, 0.22);
+    }
+
+    .fader-card.midi-vel-box {
+      background: rgba(30, 41, 59, 0.65);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+
+    .fader-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 0.78rem;
+    }
+
+    .fader-label {
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .fader-sub {
+      display: block;
+      font-size: 0.66rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .fader-value {
+      font-variant-numeric: tabular-nums;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--accent-warm);
+      background: rgba(245, 158, 11, 0.13);
+      padding: 2px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .fader-value.teal {
+      color: var(--accent-teal);
+      background: var(--accent-teal-soft);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 28px;
+      background: transparent;
+      cursor: pointer;
+      margin: 0;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-warm) var(--fill, 50%), #334155 var(--fill, 50%));
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #FEF3C7;
+      border: 3px solid var(--accent-warm);
+      margin-top: -8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+      transition: transform 0.1s ease;
+    }
+
+    input[type="range"]:active::-webkit-slider-thumb {
+      transform: scale(1.15);
+    }
+
+    input[type="range"].teal::-webkit-slider-runnable-track {
+      background: linear-gradient(90deg, var(--accent-teal) var(--fill, 50%), #334155 var(--fill, 50%));
+    }
+
+    input[type="range"].teal::-webkit-slider-thumb {
+      border-color: var(--accent-teal);
+      background: #E0F2FE;
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 8px;
+      border-radius: 999px;
+      background: #334155;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #FEF3C7;
+      border: 3px solid var(--accent-warm);
+    }
+
+    .toggle-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: #E0F2FE;
+      cursor: pointer;
+      line-height: 1.2;
+    }
+
+    .toggle-inline input[type="checkbox"] {
+      width: 17px;
+      height: 17px;
+      accent-color: var(--accent-teal);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .vel-disabled {
+      opacity: 0.38;
+      pointer-events: none;
+    }
+
+    .engine-toggle-btn {
+      font-size: 0.72rem;
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .engine-toggle-btn.ready {
+      border-color: rgba(245, 158, 11, 0.45);
+      color: #FDE68A;
+    }
+
+    /* ================= TECLADO VISUAL INTERACTIVO INFERIOR ================= */
+    .keyboard-dock {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 7px 11px 9px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      height: 24vh;
+      min-height: 124px;
+      max-height: 192px;
+      flex-shrink: 0;
+    }
+
+    .keyboard-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .kb-left, .kb-right {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .sustain-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.73rem;
+      font-weight: 700;
+      background: #0B1220;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      transition: all 0.12s ease;
+    }
+
+    .sustain-pill.on {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: var(--accent-teal);
+      color: #BAE6FD;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.28);
+    }
+
+    .kb-hint {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      display: none;
+    }
+
+    @media (min-width: 1080px) {
+      .kb-hint {
+        display: inline;
+      }
+    }
+
+    .kb-btn {
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      font-size: 0.73rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.14s ease;
+    }
+
+    .kb-btn:hover {
+      background: var(--bg-card-hover);
+      color: var(--text-primary);
+    }
+
+    .kb-btn.active {
+      background: rgba(56, 189, 248, 0.22);
+      border-color: var(--accent-teal);
+      color: #E0F2FE;
+    }
+
+    .kb-btn.active-warm {
+      background: var(--accent-warm-soft);
+      border-color: var(--border-warm);
+      color: #FDE68A;
+    }
+
+    .keyboard-container {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      background: #090E1A;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      touch-action: none;
+    }
+
+    .key-white {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      background: linear-gradient(180deg, #E2E8F0 0%, #F8FAFC 88%, #CBD5E1 100%);
+      border-right: 1px solid #94A3B8;
+      border-bottom-left-radius: 5px;
+      border-bottom-right-radius: 5px;
+      z-index: 1;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 4px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: #64748B;
+      cursor: pointer;
+      transition: background 0.05s ease;
+    }
+
+    .key-white.active {
+      background: linear-gradient(180deg, #FCD34D 0%, #F59E0B 100%);
+      color: #0F172A;
+      box-shadow: inset 0 -4px 10px rgba(180, 83, 9, 0.35);
+    }
+
+    .key-white.sustained:not(.active) {
+      background: linear-gradient(180deg, #BAE6FD 0%, #38BDF8 100%);
+      color: #0F172A;
+    }
+
+    .key-black {
+      position: absolute;
+      top: 0;
+      height: 60%;
+      background: linear-gradient(180deg, #1E293B 0%, #090E1A 92%, #020617 100%);
+      border: 1px solid #020617;
+      border-top: none;
+      border-bottom-left-radius: 4px;
+      border-bottom-right-radius: 4px;
+      z-index: 2;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.65);
+      cursor: pointer;
+      transition: background 0.05s ease;
+    }
+
+    .key-black.active {
+      background: linear-gradient(180deg, #F59E0B 0%, #B45309 100%);
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.72);
+    }
+
+    .key-black.sustained:not(.active) {
+      background: linear-gradient(180deg, #38BDF8 0%, #0284C7 100%);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.58);
+    }
+
+    /* Adaptación fluida para modo vertical o pantallas pequeñas */
+    @media (max-width: 820px) {
+      html, body {
+        overflow-y: auto;
+      }
+      .app-shell {
+        height: auto;
+        min-height: 100dvh;
+        overflow: visible;
+      }
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+      .pad-grid {
+        min-height: 205px;
+      }
+      .mixer-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+      }
+      .diag-grid {
+        grid-template-columns: 1fr;
+      }
+      .keyboard-dock {
+        height: 165px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Notificación flotante no bloqueante -->
+  <div id="toastBox" role="status" aria-live="polite"></div>
+
+  <!-- Overlay inicial obligatorio para desbloquear Web Audio + Web MIDI en gesto de usuario -->
+  <div id="startOverlay">
+    <div class="brand-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="4" width="20" height="16" rx="3"></rect>
+        <path d="M6 4v9"></path>
+        <path d="M10 4v9"></path>
+        <path d="M14 4v9"></path>
+        <path d="M18 4v9"></path>
+        <path d="M8 13v7"></path>
+        <path d="M12 13v7"></path>
+        <path d="M16 13v7"></path>
+      </svg>
+    </div>
+    <div class="overlay-subtitle">Felt Piano &amp; Soft Prayer Pad</div>
+    <h1>Sanctuary Keys</h1>
+    <p>
+      Piano acústico suave estilo <strong>Felt Grand</strong> con un <strong>Warm Pad</strong> tranquilo, sedoso y estable (cero cortes en Android), junto con soporte completo <strong>Web MIDI OTG</strong> y diagnóstico en tiempo real para tu Casio CT-S200.
+    </p>
+    <button id="btnStartAudio" type="button">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M8 5v14l11-7z"/>
+      </svg>
+      Activar Motor de Audio
+    </button>
+    <div class="start-hint">
+      Pulsa para desbloquear Audio + USB MIDI • En Android Chrome, abre la app por HTTPS (GitHub Pages / Netlify) para habilitar Web MIDI OTG
+    </div>
+  </div>
+
+  <!-- Modal de Diagnóstico MIDI en Tiempo Real -->
+  <div id="midiModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="midiModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title" id="midiModalTitle">
+          <span>🎹</span>
+          <span>Diagnóstico USB MIDI (Android OTG / Casio CT-S200)</span>
+        </div>
+        <button id="btnCloseMidiModal" class="modal-close-btn" type="button">Cerrar ✕</button>
+      </div>
+
+      <!-- Aviso dinámico sobre contexto seguro (file:// vs https://) -->
+      <div id="diagSecurityAlert" class="diag-alert"></div>
+
+      <!-- Estado del entorno y permisos -->
+      <div class="diag-grid">
+        <div class="diag-item">
+          <span class="diag-label">Contexto Seguro (HTTPS)</span>
+          <span class="diag-val" id="diagSecureCtx">—</span>
+        </div>
+        <div class="diag-item">
+          <span class="diag-label">Protocolo / Origen</span>
+          <span class="diag-val" id="diagOrigin">—</span>
+        </div>
+        <div class="diag-item">
+          <span class="diag-label">Soporte Web MIDI</span>
+          <span class="diag-val" id="diagSupport">—</span>
+        </div>
+        <div class="diag-item">
+          <span class="diag-label">Permiso / Estado API</span>
+          <span class="diag-val" id="diagPermission">—</span>
+        </div>
+      </div>
+
+      <!-- Puertos detectados -->
+      <div>
+        <div class="diag-section-title">Puertos MIDI de Entrada Detectados</div>
+        <div class="diag-box" id="diagPortsList">Ningún puerto escaneado todavía.</div>
+      </div>
+
+      <!-- Monitor en vivo (últimos 6 eventos) -->
+      <div>
+        <div class="diag-section-title">Monitor MIDI en Vivo (Últimos 6 eventos — Active Sensing filtrado)</div>
+        <div class="diag-box" id="diagEventLog">Esperando notas o pedal desde tu teclado MIDI...</div>
+      </div>
+
+      <div class="diag-actions">
+        <button id="btnModalRescan" class="btn-rescan" type="button">↻ Re-escanear USB MIDI</button>
+        <button id="btnModalCloseFooter" class="modal-close-btn" type="button">Listo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interfaz Principal -->
+  <div class="app-shell">
+    <!-- Barra Superior -->
+    <header class="top-bar">
+      <div class="app-title">
+        <span class="app-title-dot"></span>
+        <span>Sanctuary Keys</span>
+      </div>
+
+      <div class="status-group">
+        <!-- Pill clickeable que abre el modal de Diagnóstico MIDI -->
+        <button class="pill pill-btn" id="midiBadge" type="button" title="Toca para abrir el Diagnóstico MIDI en vivo">
+          <span class="status-dot" id="midiDot"></span>
+          <span id="midiText">Diagnóstico MIDI...</span>
+          <span class="midi-led" id="midiActivityLed" title="Actividad MIDI musical"></span>
+        </button>
+
+        <button class="top-btn teal-btn" id="btnReconnectMidi" type="button" title="Volver a solicitar acceso MIDI y abrir todos los puertos USB OTG">
+          <span>↻</span>
+          <span>Reconectar MIDI</span>
+        </button>
+
+        <div class="pill active-warm" id="engineBadge" title="Motor sonoro actual del piano">
+          <span id="engineText">Piano: Felt Synth (Offline)</span>
+        </div>
+
+        <button class="top-btn" id="btnWakeLock" type="button" title="Evitar que la pantalla de la tablet se apague">
+          <span>☀</span>
+          <span id="wakeLockText">Pantalla: Normal</span>
+        </button>
+
+        <button class="top-btn danger" id="btnPanic" type="button" title="Silenciar todas las notas activas (All Notes Off)">
+          <span>■</span>
+          <span>Silenciar Notas</span>
+        </button>
+
+        <button class="top-btn subtle-save" id="btnExportHtml" type="button" title="Descargar archivo limpio piano-worship.html">
+          <span>↓</span>
+          <span>Guardar HTML</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Espacio Principal: Warm Pad + Mezclador -->
+    <main class="workspace">
+      <!-- Módulo 2: Soft Warm Pad Infinito -->
+      <section class="panel" aria-label="Warm Pad Suave Infinito">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span>Warm Pad</span>
+            <span class="pad-state-label" id="padStatusText">En reposo</span>
+          </div>
+          <div class="mode-switch" role="group" aria-label="Modo armónico del Pad">
+            <button class="mode-btn active" id="btnModeMajor" type="button">Mayor / 5ª Abierta</button>
+            <button class="mode-btn" id="btnModeMinor" type="button">Menor</button>
+          </div>
+        </div>
+
+        <div class="pad-grid" id="padGrid"></div>
+
+        <div class="pad-footer">
+          <button id="btnStopPad" type="button" disabled>
+            <span>◼</span>
+            <span>Stop / Fade Out Suave</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Módulo 1 y Mezclador en Tiempo Real (2x3) -->
+      <section class="panel" aria-label="Mezclador y Control del Piano">
+        <div class="panel-header">
+          <div class="panel-title">Mezclador &amp; Piano</div>
+          <button class="engine-toggle-btn" id="btnSoundMode" type="button" title="Alternar entre muestras Salamander Grand y Felt Synth offline">
+            Fuente: Auto
+          </button>
+        </div>
+
+        <div class="mixer-grid">
+          <!-- 1. Volumen Piano -->
+          <div class="fader-card">
+            <div class="fader-row">
+              <span class="fader-label">Volumen Piano<span class="fader-sub">Felt Grand / Synth</span></span>
+              <span class="fader-value" id="valPianoVol">82%</span>
+            </div>
+            <input type="range" id="sliderPianoVol" min="0" max="100" value="82" aria-label="Volumen Piano" />
+          </div>
+
+          <!-- 2. Volumen Warm Pad (calibrado tranquilo al 48%) -->
+          <div class="fader-card pad-card">
+            <div class="fader-row">
+              <span class="fader-label">Volumen Warm Pad<span class="fader-sub">Colchón suave de oración</span></span>
+              <span class="fader-value" id="valPadVol">48%</span>
+            </div>
+            <input type="range" id="sliderPadVol" min="0" max="100" value="48" aria-label="Volumen Warm Pad" />
+          </div>
+
+          <!-- 3. Calidez Piano (Filtro Low-Pass) -->
+          <div class="fader-card">
+            <div class="fader-row">
+              <span class="fader-label">Calidez Piano<span class="fader-sub">Filtro Low-Pass</span></span>
+              <span class="fader-value" id="valWarmth">2.2 kHz</span>
+            </div>
+            <input type="range" id="sliderWarmth" min="0" max="100" value="52" aria-label="Calidez Piano" />
+          </div>
+
+          <!-- 4. Suavidad Warm Pad (280 Hz – 2200 Hz, default ~720 Hz) -->
+          <div class="fader-card pad-card">
+            <div class="fader-row">
+              <span class="fader-label">Suavidad Warm Pad<span class="fader-sub">Filtro sedoso (280–2200 Hz)</span></span>
+              <span class="fader-value" id="valPadFilter">720 Hz</span>
+            </div>
+            <input type="range" id="sliderPadFilter" min="0" max="100" value="46" aria-label="Suavidad Warm Pad" />
+          </div>
+
+          <!-- 5. Reverb Ambiental (Convolver único compartido de 3.0 s) -->
+          <div class="fader-card">
+            <div class="fader-row">
+              <span class="fader-label">Reverb Ambiental<span class="fader-sub">Salón cálido compartido</span></span>
+              <span class="fader-value" id="valReverb">40%</span>
+            </div>
+            <input type="range" id="sliderReverb" min="0" max="100" value="40" aria-label="Reverb Ambiental" />
+          </div>
+
+          <!-- 6. Sensibilidad Fija MIDI (Casio CT-S200) -->
+          <div class="fader-card midi-vel-box">
+            <div class="fader-row">
+              <label class="toggle-inline">
+                <input type="checkbox" id="chkFixedVel" checked />
+                <span>Sensibilidad CT-S200</span>
+              </label>
+              <span class="fader-value teal" id="valVelOverride">72 / 127</span>
+            </div>
+            <div id="velControlGroup">
+              <input type="range" class="teal" id="sliderVelOverride" min="20" max="127" value="72" aria-label="Sensibilidad Fija MIDI" />
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Teclado Visual Interactivo Inferior -->
+    <section class="keyboard-dock" aria-label="Teclado visual interactivo">
+      <div class="keyboard-toolbar">
+        <div class="kb-left">
+          <div class="sustain-pill" id="sustainIndicator">
+            <span>●</span>
+            <span>SUSTAIN (CC 64): OFF</span>
+          </div>
+          <button class="kb-btn" id="btnInvertPedal" type="button" title="Invertir polaridad del pedal de sustain (útil en pedales Casio)">
+            Invertir Pedal: OFF
+          </button>
+          <button class="kb-btn" id="btnTouchSustain" type="button">Mantener Pedal (Táctil)</button>
+          <span class="kb-hint">PC: Teclas A–L (notas) • Espacio (Sustain)</span>
+        </div>
+        <div class="kb-right">
+          <button class="kb-btn" id="btnRangeToggle" type="button">Vista: 61 Teclas (CT-S200)</button>
+        </div>
+      </div>
+
+      <div class="keyboard-container" id="keyboard"></div>
+    </section>
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      /* =====================================================================
+       * 1. NOTIFICACIONES, MANIFEST PWA Y EXPORTACIÓN DEL HTML LIMPIO
+       * ===================================================================== */
+      let toastTimer = null;
+      function showToast(message, durationMs = 2700) {
+        const box = document.getElementById('toastBox');
+        if (!box) return;
+        box.textContent = message;
+        box.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => box.classList.remove('show'), durationMs);
+      }
+
+      // Inyecta manifest PWA en memoria para pantalla completa en Android Chrome
+      (function injectPWAManifest() {
+        try {
+          const svgIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="42" fill="#0F172A"/><rect x="28" y="46" width="136" height="100" rx="14" fill="none" stroke="#F59E0B" stroke-width="10"/><path d="M58 46v56M86 46v56M114 46v56M142 46v56" stroke="#F59E0B" stroke-width="10" stroke-linecap="round"/></svg>';
+          const iconDataUrl = 'data:image/svg+xml;base64,' + btoa(svgIcon);
+          const manifest = {
+            name: 'Sanctuary Keys — Felt Piano & Warm Pad',
+            short_name: 'Sanctuary Keys',
+            display: 'standalone',
+            orientation: 'landscape',
+            background_color: '#0F172A',
+            theme_color: '#0F172A',
+            icons: [{ src: iconDataUrl, sizes: '192x192', type: 'image/svg+xml' }]
+          };
+          const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+          const link = document.createElement('link');
+          link.rel = 'manifest';
+          link.dataset.dynamicManifest = 'true';
+          link.href = URL.createObjectURL(blob);
+          document.head.appendChild(link);
+        } catch (_) {}
+      })();
+
+      // Exporta un archivo piano-worship.html autocontenido y en estado inicial limpio
+      function exportStandaloneHTML() {
+        try {
+          const clone = document.documentElement.cloneNode(true);
+          const dynManifest = clone.querySelector('link[data-dynamic-manifest="true"]');
+          if (dynManifest) dynManifest.remove();
+
+          const overlay = clone.querySelector('#startOverlay');
+          if (overlay) overlay.classList.remove('hidden');
+
+          const modal = clone.querySelector('#midiModal');
+          if (modal) modal.classList.remove('open');
+
+          const toast = clone.querySelector('#toastBox');
+          if (toast) {
+            toast.textContent = '';
+            toast.classList.remove('show');
+          }
+
+          const padGrid = clone.querySelector('#padGrid');
+          if (padGrid) padGrid.innerHTML = '';
+
+          const kb = clone.querySelector('#keyboard');
+          if (kb) kb.innerHTML = '';
+
+          const padStatus = clone.querySelector('#padStatusText');
+          if (padStatus) padStatus.textContent = 'En reposo';
+
+          const stopBtn = clone.querySelector('#btnStopPad');
+          if (stopBtn) stopBtn.setAttribute('disabled', '');
+
+          const midiBadge = clone.querySelector('#midiBadge');
+          if (midiBadge) {
+            midiBadge.classList.remove('connected', 'warn');
+          }
+
+          const midiText = clone.querySelector('#midiText');
+          if (midiText) midiText.textContent = 'Diagnóstico MIDI...';
+
+          const engineText = clone.querySelector('#engineText');
+          if (engineText) engineText.textContent = 'Piano: Felt Synth (Offline)';
+
+          const wakeBtn = clone.querySelector('#btnWakeLock');
+          if (wakeBtn) wakeBtn.classList.remove('active');
+
+          const wakeText = clone.querySelector('#wakeLockText');
+          if (wakeText) wakeText.textContent = 'Pantalla: Normal';
+
+          const sustainPill = clone.querySelector('#sustainIndicator');
+          if (sustainPill) {
+            sustainPill.classList.remove('on');
+            sustainPill.innerHTML = '<span>●</span><span>SUSTAIN (CC 64): OFF</span>';
+          }
+
+          const invertBtn = clone.querySelector('#btnInvertPedal');
+          if (invertBtn) {
+            invertBtn.classList.remove('active-warm');
+            invertBtn.textContent = 'Invertir Pedal: OFF';
+          }
+
+          const htmlDoc = '<!DOCTYPE html>\n' + clone.outerHTML;
+          const blob = new Blob([htmlDoc], { type: 'text/html;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'piano-worship.html';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+
+          setTimeout(() => URL.revokeObjectURL(url), 4000);
+          showToast('Descargando piano-worship.html autocontenido');
+        } catch (err) {
+          showToast('No se pudo exportar: ' + (err.message || err), 3500);
+        }
+      }
+
+      /* =====================================================================
+       * 2. CONFIGURACIÓN MUSICAL Y ESTADO GLOBAL
+       * ===================================================================== */
+      const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+      const KEYS_INFO = [
+        { name: 'C',  alt: 'Do',  idx: 0 },
+        { name: 'C#', alt: 'Db',  idx: 1 },
+        { name: 'D',  alt: 'Re',  idx: 2 },
+        { name: 'D#', alt: 'Eb',  idx: 3 },
+        { name: 'E',  alt: 'Mi',  idx: 4 },
+        { name: 'F',  alt: 'Fa',  idx: 5 },
+        { name: 'F#', alt: 'Gb',  idx: 6 },
+        { name: 'G',  alt: 'Sol', idx: 7 },
+        { name: 'G#', alt: 'Ab',  idx: 8 },
+        { name: 'A',  alt: 'La',  idx: 9 },
+        { name: 'A#', alt: 'Bb',  idx: 10 },
+        { name: 'B',  alt: 'Si',  idx: 11 }
+      ];
+
+      // Muestras reales Salamander Grand Piano (CDN público Tone.js)
+      const SALAMANDER_BASE_URL = 'https://tonejs.github.io/audio/salamander/';
+      const SALAMANDER_MAP = [
+        { midi: 33, file: 'A1.mp3' },
+        { midi: 36, file: 'C2.mp3' },
+        { midi: 39, file: 'Ds2.mp3' },
+        { midi: 42, file: 'Fs2.mp3' },
+        { midi: 45, file: 'A2.mp3' },
+        { midi: 48, file: 'C3.mp3' },
+        { midi: 51, file: 'Ds3.mp3' },
+        { midi: 54, file: 'Fs3.mp3' },
+        { midi: 57, file: 'A3.mp3' },
+        { midi: 60, file: 'C4.mp3' },
+        { midi: 63, file: 'Ds4.mp3' },
+        { midi: 66, file: 'Fs4.mp3' },
+        { midi: 69, file: 'A4.mp3' },
+        { midi: 72, file: 'C5.mp3' },
+        { midi: 75, file: 'Ds5.mp3' },
+        { midi: 78, file: 'Fs5.mp3' },
+        { midi: 81, file: 'A5.mp3' },
+        { midi: 84, file: 'C6.mp3' },
+        { midi: 87, file: 'Ds6.mp3' },
+        { midi: 90, file: 'Fs6.mp3' },
+        { midi: 93, file: 'A6.mp3' },
+        { midi: 96, file: 'C7.mp3' }
+      ];
+
+      const state = {
+        audioReady: false,
+        samplesLoaded: false,
+        preferSamples: true,
+        sampleBuffers: new Map(),
+
+        // Parámetros de mezcla
+        pianoVol: 0.82,
+        padVol: 0.48,          // Calibrado tranquilo para acompañar sin dominar al piano
+        warmthSlider: 52,      // ~2.2 kHz Felt Piano
+        padFilterSlider: 46,   // ~720 Hz Suavidad Warm Pad
+        reverbMix: 0.40,
+
+        // Control MIDI / Casio CT-S200
+        fixedVelocityEnabled: true,
+        fixedVelocityValue: 72,
+        midiSustainDown: false,
+        touchSustainDown: false,
+        pcSustainDown: false,
+        invertSustainPedal: false,
+        hasReceivedCC64: false,
+        rawMidiSustainValue: 0,
+
+        // Polifonía optimizada (24 voces máx. para máxima estabilidad en Android Chrome)
+        midiHeldNotes: new Set(),
+        touchHeldNotes: new Set(),
+        pcHeldNotes: new Set(),
+        sustainedNotes: new Set(),
+        noteVoices: new Map(),
+        allActiveVoices: [],
+        maxPolyphony: 24,
+
+        // Soft Warm Pad
+        padMode: 'major',      // 'major' (Mayor / 5ª Abierta) o 'minor' (Menor)
+        currentPad: null,
+        fadingPads: new Set(),
+
+        // Teclado visual
+        fullRange61: true,     // C2 (36) a C7 (96) idéntico al Casio CT-S200
+        keyElements: new Map(),
+        activePointers: new Map(),
+
+        // Screen Wake Lock
+        wakeLock: null,
+        wakeLockDesired: false,
+
+        // Diagnóstico Web MIDI en vivo
+        midiDiag: {
+          permissionStatus: 'Esperando activación...',
+          lastError: '',
+          ports: [],
+          events: []
+        }
+      };
+
+      /* =====================================================================
+       * 3. MOTOR WEB AUDIO LIVIANO Y ESTABLE (1 SOLO CONVOLVER DE 3.0 s)
+       * ===================================================================== */
+      let audioCtx = null;
+      let softPadWave = null;
+
+      // Bus maestro
+      let masterCompressor = null;
+      let masterGain = null;
+
+      // Un único ConvolverNode estéreo cálido compartido (cero sobrecarga de CPU)
+      let sharedReverbConvolver = null;
+      let sharedReverbReturn = null;
+
+      // Cadena del Piano Cálido (Felt Grand)
+      let pianoInputBus = null;
+      let pianoBodyEQ = null;
+      let pianoPresenceDip = null;
+      let pianoWarmthFilter = null;
+      let pianoGainNode = null;
+      let pianoReverbSend = null;
+
+      // Cadena del Soft Warm Pad (sin WaveShaper, sin chorus pesado, sin generadores de ruido)
+      let padVoiceSummingBus = null;
+      let padHighPass = null;
+      let padAntiMudEQ = null;
+      let padLowPass = null;
+      let padDetuneLFO = null;
+      let padDetuneLFOGain = null;
+      let padGainNode = null;
+      let padReverbSend = null;
+
+      function midiToFreq(midi) {
+        return 440 * Math.pow(2, (midi - 69) / 12);
+      }
+
+      function midiToNoteName(midi) {
+        const name = NOTE_NAMES[midi % 12];
+        const octave = Math.floor(midi / 12) - 1;
+        return `${name}${octave}`;
+      }
+
+      // Escala logarítmica para Calidez del Piano (420 Hz – 9.2 kHz)
+      function warmthSliderToFreq(val) {
+        const minF = 420;
+        const maxF = 9200;
+        return minF * Math.pow(maxF / minF, val / 100);
+      }
+
+      // Escala logarítmica para Suavidad del Warm Pad (280 Hz – 2200 Hz; 46% ≈ 723 Hz)
+      function padFilterSliderToFreq(val) {
+        const minF = 280;
+        const maxF = 2200;
+        return minF * Math.pow(maxF / minF, val / 100);
+      }
+
+      /**
+       * Cancela automatizaciones futuras conservando exactamente el valor instantáneo
+       * actual para evitar clics o saltos bruscos en crossfades y notas.
+       */
+      function safeCancelAndHold(audioParam, now) {
+        try {
+          if (typeof audioParam.cancelAndHoldAtTime === 'function') {
+            audioParam.cancelAndHoldAtTime(now);
+          } else {
+            const current = Math.max(0.0001, audioParam.value);
+            audioParam.cancelScheduledValues(now);
+            audioParam.setValueAtTime(current, now);
+          }
+        } catch (_) {
+          audioParam.cancelScheduledValues(now);
+          audioParam.setValueAtTime(Math.max(0.0001, audioParam.value), now);
+        }
+      }
+
+      /**
+       * Onda personalizada ultra suave para el Warm Pad con solo 5 armónicos
+       * de caída rápida (1.0, 0.28, 0.09, 0.03, 0.01): sedosa, íntima y respirable.
+       */
+      function createSoftPadPeriodicWave(ctx) {
+        const real = new Float32Array([0, 0, 0, 0, 0, 0]);
+        const imag = new Float32Array([0, 1.0, 0.28, 0.09, 0.03, 0.01]);
+        return ctx.createPeriodicWave(real, imag, { disableNormalization: false });
+      }
+
+      /**
+       * Respuesta al impulso (IR) estéreo cálida y eficiente de 3.0 segundos
+       * compartida entre Piano y Warm Pad (suavizada para evitar cualquier aspereza).
+       */
+      function buildSharedWarmHallIR(ctx, durationSec = 3.0) {
+        const sr = ctx.sampleRate;
+        const length = Math.floor(sr * durationSec);
+        const preDelaySamples = Math.floor(sr * 0.02);
+        const buffer = ctx.createBuffer(2, length, sr);
+
+        for (let ch = 0; ch < 2; ch++) {
+          const data = buffer.getChannelData(ch);
+          let lpState = 0;
+          for (let i = 0; i < length; i++) {
+            if (i < preDelaySamples) {
+              data[i] = 0;
+              continue;
+            }
+            const t = (i - preDelaySamples) / (length - preDelaySamples);
+            const attackEnv = Math.min(1, (i - preDelaySamples) / (sr * 0.045));
+            const decayEnv = Math.pow(1 - t, 2.7);
+            const white = Math.random() * 2 - 1;
+            const damping = 0.22 * (1 - t * 0.72);
+            lpState = lpState + damping * (white - lpState);
+            data[i] = lpState * attackEnv * decayEnv * 0.72;
+          }
+        }
+        return buffer;
+      }
+
+      async function initAudioEngine() {
+        try {
+          if (state.audioReady && audioCtx) {
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
+            return;
+          }
+
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new AudioContextClass({ latencyHint: 'interactive' });
+          if (audioCtx.state === 'suspended') {
+            await audioCtx.resume();
+          }
+
+          // Onda sedosa de 5 armónicos para el Warm Pad
+          softPadWave = createSoftPadPeriodicWave(audioCtx);
+
+          // Compresor maestro suave para proteger la salida de audífonos
+          masterCompressor = audioCtx.createDynamicsCompressor();
+          masterCompressor.threshold.value = -10;
+          masterCompressor.knee.value = 18;
+          masterCompressor.ratio.value = 3.0;
+          masterCompressor.attack.value = 0.006;
+          masterCompressor.release.value = 0.2;
+
+          masterGain = audioCtx.createGain();
+          masterGain.gain.value = 0.92;
+
+          masterCompressor.connect(masterGain);
+          masterGain.connect(audioCtx.destination);
+
+          /* ---------- CONVOLVER ÚNICO COMPARTIDO (3.0 s, CERO SOBRECARGA CPU) ---------- */
+          sharedReverbConvolver = audioCtx.createConvolver();
+          sharedReverbConvolver.buffer = buildSharedWarmHallIR(audioCtx, 3.0);
+
+          const reverbHP = audioCtx.createBiquadFilter();
+          reverbHP.type = 'highpass';
+          reverbHP.frequency.value = 130;
+
+          const reverbLP = audioCtx.createBiquadFilter();
+          reverbLP.type = 'lowpass';
+          reverbLP.frequency.value = 2800;
+
+          sharedReverbReturn = audioCtx.createGain();
+          sharedReverbReturn.gain.value = state.reverbMix * 0.88;
+
+          sharedReverbConvolver.connect(reverbHP);
+          reverbHP.connect(reverbLP);
+          reverbLP.connect(sharedReverbReturn);
+          sharedReverbReturn.connect(masterCompressor);
+
+          /* ---------- MÓDULO 1: CADENA DEL PIANO CÁLIDO (FELT GRAND) ---------- */
+          pianoInputBus = audioCtx.createGain();
+          pianoInputBus.gain.value = 1.0;
+
+          pianoBodyEQ = audioCtx.createBiquadFilter();
+          pianoBodyEQ.type = 'lowshelf';
+          pianoBodyEQ.frequency.value = 220;
+          pianoBodyEQ.gain.value = 2.2;
+
+          pianoPresenceDip = audioCtx.createBiquadFilter();
+          pianoPresenceDip.type = 'peaking';
+          pianoPresenceDip.frequency.value = 3200;
+          pianoPresenceDip.Q.value = 1.1;
+          pianoPresenceDip.gain.value = -3.0;
+
+          pianoWarmthFilter = audioCtx.createBiquadFilter();
+          pianoWarmthFilter.type = 'lowpass';
+          pianoWarmthFilter.Q.value = 0.65;
+          pianoWarmthFilter.frequency.value = warmthSliderToFreq(state.warmthSlider);
+
+          pianoGainNode = audioCtx.createGain();
+          pianoGainNode.gain.value = state.pianoVol;
+
+          pianoReverbSend = audioCtx.createGain();
+          pianoReverbSend.gain.value = 0.68;
+
+          pianoInputBus.connect(pianoBodyEQ);
+          pianoBodyEQ.connect(pianoPresenceDip);
+          pianoPresenceDip.connect(pianoWarmthFilter);
+          pianoWarmthFilter.connect(pianoGainNode);
+          pianoGainNode.connect(masterCompressor);
+          pianoGainNode.connect(pianoReverbSend);
+          pianoReverbSend.connect(sharedReverbConvolver);
+
+          /* ---------- MÓDULO 2: CADENA DEL WARM PAD SUAVE Y TRANQUILO ---------- */
+          padVoiceSummingBus = audioCtx.createGain();
+          padVoiceSummingBus.gain.value = 0.72;
+
+          // Filtro pasa-altos suave a 82 Hz (Q = 0.5) para quitar retumbe grave imponente
+          padHighPass = audioCtx.createBiquadFilter();
+          padHighPass.type = 'highpass';
+          padHighPass.frequency.value = 82;
+          padHighPass.Q.value = 0.5;
+
+          // Leve recorte en 380 Hz (-2.5 dB) para abrir espacio natural al piano
+          padAntiMudEQ = audioCtx.createBiquadFilter();
+          padAntiMudEQ.type = 'peaking';
+          padAntiMudEQ.frequency.value = 380;
+          padAntiMudEQ.Q.value = 0.9;
+          padAntiMudEQ.gain.value = -2.5;
+
+          // Filtro pasa-bajos único y sedoso (Q = 0.5, sin pico resonante), default ~720 Hz
+          padLowPass = audioCtx.createBiquadFilter();
+          padLowPass.type = 'lowpass';
+          padLowPass.Q.value = 0.5;
+          padLowPass.frequency.value = padFilterSliderToFreq(state.padFilterSlider);
+
+          // Modulación 100% estable en DETUNE (±120 cents a 0.055 Hz): jamás puede volverse <= 0 Hz
+          padDetuneLFO = audioCtx.createOscillator();
+          padDetuneLFO.type = 'sine';
+          padDetuneLFO.frequency.value = 0.055;
+          padDetuneLFOGain = audioCtx.createGain();
+          padDetuneLFOGain.gain.value = 120;
+          padDetuneLFO.connect(padDetuneLFOGain);
+          padDetuneLFOGain.connect(padLowPass.detune);
+          padDetuneLFO.start(audioCtx.currentTime);
+
+          // Ganancia calibrada tranquila para acompañar sin dominar al piano
+          padGainNode = audioCtx.createGain();
+          padGainNode.gain.value = state.padVol * 0.58;
+
+          // Envío independiente a la reverb compartida para sensación de colchón envolvente
+          padReverbSend = audioCtx.createGain();
+          padReverbSend.gain.value = 0.92;
+
+          padVoiceSummingBus.connect(padHighPass);
+          padHighPass.connect(padAntiMudEQ);
+          padAntiMudEQ.connect(padLowPass);
+          padLowPass.connect(padGainNode);
+          padGainNode.connect(masterCompressor);
+          padGainNode.connect(padReverbSend);
+          padReverbSend.connect(sharedReverbConvolver);
+
+          state.audioReady = true;
+
+          // Cargar muestras Salamander Grand en segundo plano (con respaldo offline inmediato)
+          loadSalamanderSamplesInBackground();
+        } catch (err) {
+          showToast('Error iniciando motor de audio: ' + (err.message || err), 4000);
+        }
+      }
+
+      /* =====================================================================
+       * 4. CARGA EN SEGUNDO PLANO DE SALAMANDER GRAND PIANO (CACHÉ OFFLINE)
+       * ===================================================================== */
+      async function fetchWithTimeout(url, timeoutMs = 8500) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          const resp = await fetch(url, { signal: controller.signal, mode: 'cors' });
+          clearTimeout(timer);
+          if (!resp.ok) throw new Error('HTTP ' + resp.status);
+          return resp;
+        } catch (err) {
+          clearTimeout(timer);
+          throw err;
+        }
+      }
+
+      async function loadSalamanderSamplesInBackground() {
+        const engineText = document.getElementById('engineText');
+        const btnSoundMode = document.getElementById('btnSoundMode');
+
+        if (!navigator.onLine) {
+          engineText.textContent = 'Piano: Felt Synth (Offline)';
+          btnSoundMode.textContent = 'Modo Offline';
+          return;
+        }
+
+        engineText.textContent = 'Cargando Salamander Grand...';
+        let loadedCount = 0;
+
+        let cache = null;
+        try {
+          if ('caches' in window) {
+            cache = await caches.open('sanctuary-salamander-v1');
+          }
+        } catch (_) {
+          cache = null;
+        }
+
+        const tasks = SALAMANDER_MAP.map(async (item) => {
+          const url = SALAMANDER_BASE_URL + item.file;
+          try {
+            let arrayBuffer = null;
+            if (cache) {
+              const cached = await cache.match(url);
+              if (cached) arrayBuffer = await cached.arrayBuffer();
+            }
+            if (!arrayBuffer) {
+              const resp = await fetchWithTimeout(url, 9000);
+              if (cache) {
+                try { await cache.put(url, resp.clone()); } catch (_) {}
+              }
+              arrayBuffer = await resp.arrayBuffer();
+            }
+            const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+            state.sampleBuffers.set(item.midi, audioBuffer);
+            loadedCount++;
+          } catch (_) {}
+        });
+
+        await Promise.all(tasks);
+
+        if (loadedCount >= 14) {
+          state.samplesLoaded = true;
+          updateSoundModeUI();
+          showToast('Piano Salamander Felt cargado');
+        } else {
+          state.samplesLoaded = false;
+          engineText.textContent = 'Piano: Felt Synth (Offline)';
+          btnSoundMode.textContent = 'Felt Synth';
+        }
+      }
+
+      function updateSoundModeUI() {
+        const engineText = document.getElementById('engineText');
+        const btnSoundMode = document.getElementById('btnSoundMode');
+        if (state.samplesLoaded && state.preferSamples) {
+          engineText.textContent = 'Piano: Salamander Felt';
+          btnSoundMode.textContent = 'Fuente: Salamander';
+          btnSoundMode.classList.add('ready');
+        } else if (state.samplesLoaded && !state.preferSamples) {
+          engineText.textContent = 'Piano: Felt Synth';
+          btnSoundMode.textContent = 'Fuente: Felt Synth';
+          btnSoundMode.classList.add('ready');
+        } else {
+          engineText.textContent = 'Piano: Felt Synth (Offline)';
+          btnSoundMode.textContent = 'Modo Offline';
+          btnSoundMode.classList.remove('ready');
+        }
+      }
+
+      /* =====================================================================
+       * 5. MÓDULO 1: PIANO CÁLIDO (SALAMANDER + FELT SYNTH OFFLINE, 24 VOCES)
+       * ===================================================================== */
+      function findClosestSample(midi) {
+        let bestMidi = null;
+        let minDiff = Infinity;
+        for (const sampleMidi of state.sampleBuffers.keys()) {
+          const diff = Math.abs(midi - sampleMidi);
+          if (diff < minDiff) {
+            minDiff = diff;
+            bestMidi = sampleMidi;
+          }
+        }
+        return bestMidi;
+      }
+
+      function createSamplePianoVoice(midi, velNorm) {
+        const now = audioCtx.currentTime;
+        const closestMidi = findClosestSample(midi);
+        const buffer = state.sampleBuffers.get(closestMidi);
+
+        const src = audioCtx.createBufferSource();
+        src.buffer = buffer;
+        src.playbackRate.value = Math.pow(2, (midi - closestMidi) / 12);
+
+        const voiceFilter = audioCtx.createBiquadFilter();
+        voiceFilter.type = 'lowpass';
+        voiceFilter.Q.value = 0.5;
+        voiceFilter.frequency.value = 1080 + velNorm * velNorm * 5600;
+
+        const voiceGain = audioCtx.createGain();
+        const peakGain = Math.pow(velNorm, 1.35) * 0.92;
+        voiceGain.gain.setValueAtTime(0.0001, now);
+        voiceGain.gain.linearRampToValueAtTime(peakGain, now + 0.009);
+
+        src.connect(voiceFilter);
+        voiceFilter.connect(voiceGain);
+        voiceGain.connect(pianoInputBus);
+        src.start(now);
+
+        let released = false;
+        const voice = {
+          midi,
+          createdAt: now,
+          release(fadeTime = 0.34) {
+            if (released) return;
+            released = true;
+            const t = audioCtx.currentTime;
+            safeCancelAndHold(voiceGain.gain, t);
+            voiceGain.gain.exponentialRampToValueAtTime(0.0001, t + fadeTime);
+            try { src.stop(t + fadeTime + 0.03); } catch (_) {}
+            setTimeout(() => {
+              try {
+                src.disconnect();
+                voiceFilter.disconnect();
+                voiceGain.disconnect();
+              } catch (_) {}
+              removeVoiceFromPool(voice);
+            }, (fadeTime + 0.08) * 1000);
+          }
+        };
+
+        src.onended = () => {
+          if (!released) {
+            released = true;
+            try {
+              src.disconnect();
+              voiceFilter.disconnect();
+              voiceGain.disconnect();
+            } catch (_) {}
+            removeVoiceFromPool(voice);
+          }
+        };
+
+        return voice;
+      }
+
+      function createSynthFeltPianoVoice(midi, velNorm) {
+        const now = audioCtx.currentTime;
+        const freq = midiToFreq(midi);
+        const decayTime = Math.max(1.5, 6.0 - ((midi - 33) / 64) * 4.2);
+
+        const voiceFilter = audioCtx.createBiquadFilter();
+        voiceFilter.type = 'lowpass';
+        voiceFilter.Q.value = 0.7;
+
+        const startCutoff = Math.min(6000, freq * (2.5 + velNorm * 3.6) + 320);
+        const sustainCutoff = Math.min(2350, freq * 1.62 + 250);
+        voiceFilter.frequency.setValueAtTime(startCutoff, now);
+        voiceFilter.frequency.exponentialRampToValueAtTime(sustainCutoff, now + 0.55);
+
+        const voiceGain = audioCtx.createGain();
+        const peakGain = Math.pow(velNorm, 1.3) * 0.42;
+
+        voiceGain.gain.setValueAtTime(0.0001, now);
+        voiceGain.gain.linearRampToValueAtTime(peakGain, now + 0.01);
+        voiceGain.gain.exponentialRampToValueAtTime(peakGain * 0.48, now + 0.34);
+        voiceGain.gain.exponentialRampToValueAtTime(0.0001, now + decayTime);
+
+        const osc1 = audioCtx.createOscillator();
+        osc1.type = 'triangle';
+        osc1.frequency.value = freq;
+        osc1.detune.value = -1.8;
+        const g1 = audioCtx.createGain();
+        g1.gain.value = 0.62;
+
+        const osc2 = audioCtx.createOscillator();
+        osc2.type = 'sine';
+        osc2.frequency.value = freq;
+        osc2.detune.value = 1.8;
+        const g2 = audioCtx.createGain();
+        g2.gain.value = 0.52;
+
+        const osc3 = audioCtx.createOscillator();
+        osc3.type = 'sine';
+        osc3.frequency.value = freq * 2;
+        const g3 = audioCtx.createGain();
+        const h2Peak = 0.15 * (0.4 + velNorm * 0.6);
+        g3.gain.setValueAtTime(h2Peak, now);
+        g3.gain.exponentialRampToValueAtTime(0.0001, now + decayTime * 0.42);
+
+        const fmMod = audioCtx.createOscillator();
+        fmMod.type = 'sine';
+        fmMod.frequency.value = freq * 3;
+        const fmDepth = audioCtx.createGain();
+        fmDepth.gain.setValueAtTime(freq * 0.13 * velNorm, now);
+        fmDepth.gain.exponentialRampToValueAtTime(0.01, now + 0.045);
+
+        fmMod.connect(fmDepth);
+        fmDepth.connect(osc1.frequency);
+
+        osc1.connect(g1);
+        osc2.connect(g2);
+        osc3.connect(g3);
+        g1.connect(voiceFilter);
+        g2.connect(voiceFilter);
+        g3.connect(voiceFilter);
+        voiceFilter.connect(voiceGain);
+        voiceGain.connect(pianoInputBus);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc3.start(now);
+        fmMod.start(now);
+
+        osc1.stop(now + decayTime + 0.1);
+        osc2.stop(now + decayTime + 0.1);
+        osc3.stop(now + decayTime * 0.45 + 0.1);
+        fmMod.stop(now + 0.08);
+
+        let released = false;
+        const cleanupNodes = () => {
+          [osc1, osc2, osc3, fmMod, g1, g2, g3, fmDepth, voiceFilter, voiceGain].forEach(n => {
+            try { n.disconnect(); } catch (_) {}
+          });
+          removeVoiceFromPool(voice);
+        };
+
+        const autoCleanupTimer = setTimeout(() => {
+          if (!released) {
+            released = true;
+            cleanupNodes();
+          }
+        }, (decayTime + 0.2) * 1000);
+
+        const voice = {
+          midi,
+          createdAt: now,
+          release(fadeTime = 0.32) {
+            if (released) return;
+            released = true;
+            clearTimeout(autoCleanupTimer);
+            const t = audioCtx.currentTime;
+            safeCancelAndHold(voiceGain.gain, t);
+            voiceGain.gain.exponentialRampToValueAtTime(0.0001, t + fadeTime);
+            [osc1, osc2, osc3, fmMod].forEach(o => {
+              try { o.stop(t + fadeTime + 0.03); } catch (_) {}
+            });
+            setTimeout(cleanupNodes, (fadeTime + 0.08) * 1000);
+          }
+        };
+
+        return voice;
+      }
+
+      function removeVoiceFromPool(voice) {
+        const idx = state.allActiveVoices.indexOf(voice);
+        if (idx !== -1) state.allActiveVoices.splice(idx, 1);
+        if (state.noteVoices.get(voice.midi) === voice) {
+          state.noteVoices.delete(voice.midi);
+        }
+      }
+
+      function isSustainActive() {
+        return state.midiSustainDown || state.touchSustainDown || state.pcSustainDown;
+      }
+
+      function isNotePhysicallyHeld(midi) {
+        return state.midiHeldNotes.has(midi) || state.touchHeldNotes.has(midi) || state.pcHeldNotes.has(midi);
+      }
+
+      function triggerNoteOn(midi, rawVelocity = 80, source = 'midi') {
+        if (!state.audioReady || !audioCtx) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        if (source === 'midi') state.midiHeldNotes.add(midi);
+        else if (source === 'touch') state.touchHeldNotes.add(midi);
+        else state.pcHeldNotes.add(midi);
+
+        state.sustainedNotes.delete(midi);
+
+        const effectiveVel = (source === 'midi' && state.fixedVelocityEnabled)
+          ? state.fixedVelocityValue
+          : rawVelocity;
+        const velNorm = Math.max(0.08, Math.min(1, effectiveVel / 127));
+
+        const prevVoice = state.noteVoices.get(midi);
+        if (prevVoice) {
+          prevVoice.release(0.055);
+        }
+
+        // Polifonía máxima de 24 voces para rendimiento impecable en Chrome Android
+        while (state.allActiveVoices.length >= state.maxPolyphony) {
+          const oldest = state.allActiveVoices.shift();
+          if (oldest) oldest.release(0.05);
+        }
+
+        const voice = (state.samplesLoaded && state.preferSamples)
+          ? createSamplePianoVoice(midi, velNorm)
+          : createSynthFeltPianoVoice(midi, velNorm);
+
+        state.noteVoices.set(midi, voice);
+        state.allActiveVoices.push(voice);
+
+        updateKeyVisual(midi);
+      }
+
+      function triggerNoteOff(midi, source = 'midi') {
+        if (source === 'midi') state.midiHeldNotes.delete(midi);
+        else if (source === 'touch') state.touchHeldNotes.delete(midi);
+        else state.pcHeldNotes.delete(midi);
+
+        if (isNotePhysicallyHeld(midi)) {
+          updateKeyVisual(midi);
+          return;
+        }
+
+        if (isSustainActive()) {
+          if (state.noteVoices.has(midi)) {
+            state.sustainedNotes.add(midi);
+          }
+        } else {
+          const voice = state.noteVoices.get(midi);
+          if (voice) {
+            voice.release(0.32);
+            state.noteVoices.delete(midi);
+          }
+        }
+        updateKeyVisual(midi);
+      }
+
+      function setSustainPedal(isDown, source = 'midi') {
+        const wasActive = isSustainActive();
+        if (source === 'midi') state.midiSustainDown = isDown;
+        else if (source === 'touch') state.touchSustainDown = isDown;
+        else state.pcSustainDown = isDown;
+
+        const nowActive = isSustainActive();
+
+        if (wasActive && !nowActive) {
+          for (const midi of state.sustainedNotes) {
+            if (!isNotePhysicallyHeld(midi)) {
+              const voice = state.noteVoices.get(midi);
+              if (voice) {
+                voice.release(0.35);
+                state.noteVoices.delete(midi);
+              }
+            }
+          }
+          state.sustainedNotes.clear();
+          refreshAllKeyVisuals();
+        }
+        updateSustainUI();
+      }
+
+      function toggleInvertSustainPedal() {
+        state.invertSustainPedal = !state.invertSustainPedal;
+        const btn = document.getElementById('btnInvertPedal');
+        btn.classList.toggle('active-warm', state.invertSustainPedal);
+        btn.textContent = state.invertSustainPedal ? 'Invertir Pedal: ON' : 'Invertir Pedal: OFF';
+
+        // Si ya se recibió al menos un mensaje CC 64, re-evaluar de inmediato la polaridad
+        if (state.hasReceivedCC64) {
+          const pressed = state.invertSustainPedal
+            ? (state.rawMidiSustainValue < 64)
+            : (state.rawMidiSustainValue >= 64);
+          setSustainPedal(pressed, 'midi');
+        }
+        showToast(state.invertSustainPedal ? 'Polaridad de pedal invertida (ON)' : 'Polaridad de pedal normal (OFF)');
+      }
+
+      function panicAllNotesOff(showFeedback = true) {
+        state.midiHeldNotes.clear();
+        state.touchHeldNotes.clear();
+        state.pcHeldNotes.clear();
+        state.sustainedNotes.clear();
+        state.midiSustainDown = false;
+        state.touchSustainDown = false;
+        state.pcSustainDown = false;
+
+        const copy = [...state.allActiveVoices];
+        copy.forEach(v => v.release(0.08));
+        state.noteVoices.clear();
+        updateSustainUI();
+        refreshAllKeyVisuals();
+        if (showFeedback) showToast('Todas las notas del piano silenciadas');
+      }
+
+      /* =====================================================================
+       * 6. MÓDULO 2: SOFT WARM PAD (6 OSCILADORES LIMPIOS, TRANQUILO, CERO CORTES)
+       * ===================================================================== */
+      function connectWithPan(sourceNode, destinationNode, panValue, nodesArray) {
+        if (typeof audioCtx.createStereoPanner === 'function' && panValue !== 0) {
+          const panner = audioCtx.createStereoPanner();
+          panner.pan.value = panValue;
+          sourceNode.connect(panner);
+          panner.connect(destinationNode);
+          nodesArray.push(panner);
+        } else {
+          sourceNode.connect(destinationNode);
+        }
+      }
+
+      function buildSoftWarmPadLayer(keyIndex, mode) {
+        const now = audioCtx.currentTime;
+
+        // Octava equilibrada para las 12 tonalidades: A1..G#2 (MIDI 33..44, 55–104 Hz)
+        // Ninguna tonalidad suena excesivamente sub-grave ni estridente
+        const rootBase = keyIndex >= 9 ? (36 + keyIndex - 12) : (36 + keyIndex);
+
+        // Fade-in exponencial sedoso con setTargetAtTime (~2.8s, timeConstant 0.85s)
+        const padMasterGain = audioCtx.createGain();
+        padMasterGain.gain.setValueAtTime(0.0001, now);
+        padMasterGain.gain.setTargetAtTime(1.0, now + 0.01, 0.85);
+        padMasterGain.connect(padVoiceSummingBus);
+
+        const nodes = [padMasterGain];
+        const oscs = [];
+
+        // Exactamente 6 osciladores ultra limpios por capa de pad (máx. 12 durante crossfade)
+        const voicePlan = [
+          // 1. Ancla fundamental suave en el centro
+          { midi: rootBase,      wave: 'sine',    detune: 0,    gain: 0.16,  pan: 0 },
+          // 2. Cuerpo medio izquierdo (onda sedosa de 5 armónicos)
+          { midi: rootBase + 12, wave: 'softpad', detune: -4.5, gain: 0.21,  pan: -0.45 },
+          // 3. Cuerpo medio derecho (onda sedosa de 5 armónicos)
+          { midi: rootBase + 12, wave: 'softpad', detune: 4.5,  gain: 0.21,  pan: 0.45 },
+          // 4. Quinta justa abierta suave
+          { midi: rootBase + 19, wave: 'sine',    detune: 2.5,  gain: 0.12,  pan: 0.28 },
+          // 5. Halo de octava delicado
+          { midi: rootBase + 24, wave: 'sine',    detune: -2.5, gain: 0.075, pan: -0.28 }
+        ];
+
+        // 6. Voz de color según el modo elegido
+        if (mode === 'minor') {
+          // Modo Menor: tercera menor muy suave y contemplativa
+          voicePlan.push({
+            midi: rootBase + 15,
+            wave: 'sine',
+            detune: 2.0,
+            gain: 0.085,
+            pan: 0.18
+          });
+        } else {
+          // Modo Mayor / 5ª Abierta: octava ultra delicada/aire (100% neutro sobre cualquier acorde)
+          voicePlan.push({
+            midi: rootBase + 24,
+            wave: 'sine',
+            detune: 3.0,
+            gain: 0.055,
+            pan: 0.22
+          });
+        }
+
+        voicePlan.forEach((v) => {
+          const osc = audioCtx.createOscillator();
+          if (v.wave === 'softpad' && softPadWave) {
+            osc.setPeriodicWave(softPadWave);
+          } else {
+            osc.type = 'sine';
+          }
+          osc.frequency.value = midiToFreq(v.midi);
+          osc.detune.value = v.detune;
+
+          const g = audioCtx.createGain();
+          g.gain.value = v.gain;
+
+          osc.connect(g);
+          connectWithPan(g, padMasterGain, v.pan, nodes);
+
+          osc.start(now);
+          oscs.push(osc);
+          nodes.push(osc, g);
+        });
+
+        return {
+          keyIndex,
+          mode,
+          masterGain: padMasterGain,
+          oscs,
+          nodes,
+          stopTimer: null
+        };
+      }
+
+      /**
+       * Fade-out libre de clics con cancelAndHold + setTargetAtTime (~2.8s, constante 0.75s).
+       * Detiene y desconecta los osciladores recién a los 4.2 segundos en silencio absoluto.
+       */
+      function fadeOutSoftPad(padObj) {
+        if (!padObj || !audioCtx) return;
+        if (padObj.stopTimer) clearTimeout(padObj.stopTimer);
+
+        const now = audioCtx.currentTime;
+        safeCancelAndHold(padObj.masterGain.gain, now);
+        padObj.masterGain.gain.setTargetAtTime(0.0001, now + 0.005, 0.75);
+
+        state.fadingPads.add(padObj);
+        padObj.stopTimer = setTimeout(() => {
+          padObj.oscs.forEach(o => {
+            try { o.stop(); } catch (_) {}
+          });
+          padObj.nodes.forEach(n => {
+            try { n.disconnect(); } catch (_) {}
+          });
+          state.fadingPads.delete(padObj);
+        }, 4200);
+      }
+
+      function selectPadKey(keyIndex) {
+        if (!state.audioReady) {
+          showToast('Pulsa "Activar Motor de Audio" primero');
+          return;
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        if (state.currentPad && state.currentPad.keyIndex === keyIndex && state.currentPad.mode === state.padMode) {
+          return;
+        }
+
+        if (state.currentPad) {
+          fadeOutSoftPad(state.currentPad);
+        }
+
+        state.currentPad = buildSoftWarmPadLayer(keyIndex, state.padMode);
+        updatePadUI();
+      }
+
+      function switchPadMode(newMode) {
+        if (state.padMode === newMode) return;
+        state.padMode = newMode;
+        document.getElementById('btnModeMajor').classList.toggle('active', newMode === 'major');
+        document.getElementById('btnModeMinor').classList.toggle('active', newMode === 'minor');
+
+        if (state.currentPad) {
+          const activeKey = state.currentPad.keyIndex;
+          fadeOutSoftPad(state.currentPad);
+          state.currentPad = buildSoftWarmPadLayer(activeKey, newMode);
+          updatePadUI();
+        }
+      }
+
+      function stopPadSmoothly() {
+        if (!state.currentPad) return;
+        fadeOutSoftPad(state.currentPad);
+        state.currentPad = null;
+        updatePadUI(true);
+      }
+
+      function updatePadUI(isStopping = false) {
+        const buttons = document.querySelectorAll('.pad-key');
+        const statusEl = document.getElementById('padStatusText');
+        const stopBtn = document.getElementById('btnStopPad');
+
+        buttons.forEach(btn => {
+          const idx = Number(btn.dataset.key);
+          const isActive = state.currentPad && state.currentPad.keyIndex === idx;
+          btn.classList.toggle('active', Boolean(isActive));
+        });
+
+        if (state.currentPad) {
+          const info = KEYS_INFO[state.currentPad.keyIndex];
+          const modeLabel = state.currentPad.mode === 'minor' ? 'Menor' : 'Mayor / 5ª';
+          statusEl.textContent = `Sonando: ${info.name} (${modeLabel})`;
+          stopBtn.disabled = false;
+        } else if (isStopping) {
+          statusEl.textContent = 'Desvaneciendo suavemente...';
+          stopBtn.disabled = true;
+          setTimeout(() => {
+            if (!state.currentPad) statusEl.textContent = 'En reposo';
+          }, 3000);
+        } else {
+          statusEl.textContent = 'En reposo';
+          stopBtn.disabled = true;
+        }
+      }
+
+      /* =====================================================================
+       * 7. WEB MIDI API ROBUSTO PARA ANDROID OTG + CASIO CT-S200 + DIAGNÓSTICO
+       * ===================================================================== */
+      let midiAccess = null;
+      let midiLedTimer = null;
+      let midiStateDebounce = null;
+
+      function flashMidiLed() {
+        const led = document.getElementById('midiActivityLed');
+        if (!led) return;
+        led.classList.add('flash');
+        clearTimeout(midiLedTimer);
+        midiLedTimer = setTimeout(() => led.classList.remove('flash'), 90);
+      }
+
+      function pushMidiDiagEvent(summary) {
+        const now = new Date();
+        const ts = now.toTimeString().slice(0, 8);
+        state.midiDiag.events.unshift({ ts, summary });
+        if (state.midiDiag.events.length > 6) {
+          state.midiDiag.events.length = 6;
+        }
+        renderMidiDiagnosticsIfOpen();
+      }
+
+      function handleMIDIMessage(event) {
+        const data = event.data;
+        if (!data || data.length === 0) return;
+
+        const statusByte = data[0];
+
+        // Ignorar estrictamente System Real-Time y SysEx (>= 0xF0), incluyendo Active Sensing 0xFE de Casio
+        if (statusByte >= 0xF0) return;
+        if (data.length < 2) return;
+
+        const cmd = statusByte & 0xF0;
+        const channel = (statusByte & 0x0F) + 1; // Canales 1 a 16
+        const d1 = data[1];
+        const d2 = data.length > 2 ? data[2] : 0;
+
+        if (cmd === 0x90) {
+          flashMidiLed();
+          if (d2 > 0) {
+            triggerNoteOn(d1, d2, 'midi');
+            pushMidiDiagEvent(`Ch${channel} NoteOn ${midiToNoteName(d1)} (${d1}) vel:${d2}`);
+          } else {
+            triggerNoteOff(d1, 'midi');
+            pushMidiDiagEvent(`Ch${channel} NoteOff ${midiToNoteName(d1)} (${d1}) vel:0`);
+          }
+        } else if (cmd === 0x80) {
+          flashMidiLed();
+          triggerNoteOff(d1, 'midi');
+          pushMidiDiagEvent(`Ch${channel} NoteOff ${midiToNoteName(d1)} (${d1})`);
+        } else if (cmd === 0xB0) {
+          if (d1 === 64) {
+            // Pedal de Sustain estricto (CC 64) con soporte de inversión de polaridad
+            flashMidiLed();
+            state.hasReceivedCC64 = true;
+            state.rawMidiSustainValue = d2;
+            const isPressed = state.invertSustainPedal ? (d2 < 64) : (d2 >= 64);
+            setSustainPedal(isPressed, 'midi');
+            pushMidiDiagEvent(`Ch${channel} CC64: ${d2} (Sustain ${isPressed ? 'ON' : 'OFF'})`);
+          } else if (d1 === 120 || d1 === 123) {
+            flashMidiLed();
+            panicAllNotesOff(false);
+            pushMidiDiagEvent(`Ch${channel} CC${d1} (All Notes Off)`);
+          } else {
+            pushMidiDiagEvent(`Ch${channel} CC${d1}: ${d2}`);
+          }
+        }
+      }
+
+      /**
+       * Abre explícitamente TODOS los puertos en midiAccess.inputs.values()
+       * sin filtrar antes de abrir y evita duplicar listeners asignando onmidimessage.
+       */
+      async function bindAndOpenAllMIDIInputs() {
+        if (!midiAccess) return;
+
+        const badge = document.getElementById('midiBadge');
+        const text = document.getElementById('midiText');
+        const portsSnapshot = [];
+        const connectedNames = [];
+
+        const inputs = Array.from(midiAccess.inputs.values());
+        for (const input of inputs) {
+          try {
+            if (input.connection !== 'open') {
+              await input.open();
+            }
+          } catch (openErr) {
+            state.midiDiag.lastError = `Error abriendo puerto "${input.name || input.id}": ${openErr.message || openErr}`;
+          }
+
+          // Asignar directamente (nunca duplica listeners en re-escaneos u onstatechange)
+          input.onmidimessage = handleMIDIMessage;
+
+          const name = input.name || 'Teclado USB MIDI';
+          const manufacturer = input.manufacturer || 'Desconocido';
+          portsSnapshot.push({
+            name,
+            manufacturer,
+            state: input.state || 'unknown',
+            connection: input.connection || 'unknown'
+          });
+
+          if (input.state === 'connected') {
+            connectedNames.push(name);
+          }
+        }
+
+        state.midiDiag.ports = portsSnapshot;
+
+        if (connectedNames.length > 0) {
+          const preferred = connectedNames.find(n => /casio|ct-s|usb|midi/i.test(n)) || connectedNames[0];
+          badge.classList.remove('warn');
+          badge.classList.add('connected');
+          text.textContent = `Teclado: ${preferred}`;
+        } else {
+          badge.classList.remove('connected');
+          badge.classList.toggle('warn', !window.isSecureContext);
+          text.textContent = window.isSecureContext
+            ? 'Sin teclado MIDI (Toca para diagnóstico)'
+            : 'MIDI requiere HTTPS (Ver diagnóstico)';
+        }
+
+        renderMidiDiagnosticsIfOpen();
+      }
+
+      /**
+       * Solicita acceso Web MIDI con fallback automático si { sysex: false } falla.
+       * Se llama directamente en el gesto de clic del botón "Activar Motor de Audio"
+       * y también desde "Reconectar MIDI" / "Re-escanear USB MIDI".
+       */
+      async function initWebMIDI(isManualReconnect = false) {
+        const badge = document.getElementById('midiBadge');
+        const text = document.getElementById('midiText');
+        state.midiDiag.lastError = '';
+
+        if (!('requestMIDIAccess' in navigator)) {
+          state.midiDiag.permissionStatus = 'API no soportada por este navegador';
+          state.midiDiag.ports = [];
+          badge.classList.remove('connected');
+          badge.classList.add('warn');
+          text.textContent = 'Web MIDI no soportado (Ver diagnóstico)';
+          renderMidiDiagnosticsIfOpen();
+          if (isManualReconnect) showToast('Este navegador no soporta Web MIDI API');
+          return;
+        }
+
+        try {
+          try {
+            midiAccess = await navigator.requestMIDIAccess({ sysex: false });
+          } catch (_) {
+            // Fallback estándar sin opciones para compatibilidad en dispositivos Android
+            midiAccess = await navigator.requestMIDIAccess();
+          }
+
+          state.midiDiag.permissionStatus = 'Concedido (Activo)';
+
+          // Evitar acumulación de llamadas múltiples en onstatechange
+          midiAccess.onstatechange = () => {
+            clearTimeout(midiStateDebounce);
+            midiStateDebounce = setTimeout(() => {
+              bindAndOpenAllMIDIInputs();
+            }, 120);
+          };
+
+          await bindAndOpenAllMIDIInputs();
+
+          if (isManualReconnect) {
+            const count = state.midiDiag.ports.filter(p => p.state === 'connected').length;
+            showToast(count > 0
+              ? `MIDI reconectado: ${count} puerto(s) abierto(s)`
+              : 'Escaneo MIDI completado: no se detectó teclado USB');
+          }
+        } catch (err) {
+          const errMsg = `${err && err.name ? err.name + ': ' : ''}${err && err.message ? err.message : String(err)}`;
+          state.midiDiag.permissionStatus = 'Bloqueado / Error';
+          state.midiDiag.lastError = errMsg;
+          state.midiDiag.ports = [];
+
+          badge.classList.remove('connected');
+          badge.classList.add('warn');
+          text.textContent = 'MIDI bloqueado (Ver diagnóstico)';
+          renderMidiDiagnosticsIfOpen();
+
+          if (isManualReconnect) {
+            showToast('Error Web MIDI: revisa el panel de diagnóstico', 3200);
+          }
+        }
+      }
+
+      /* ================= RENDER DEL MODAL DE DIAGNÓSTICO MIDI ================= */
+      function renderMidiDiagnostics() {
+        const isSecure = Boolean(window.isSecureContext);
+        const proto = window.location.protocol;
+        const originLabel = (window.location.origin && window.location.origin !== 'null')
+          ? window.location.origin
+          : `${proto} (Archivo local / iframe)`;
+
+        const alertEl = document.getElementById('diagSecurityAlert');
+        const secureEl = document.getElementById('diagSecureCtx');
+        const originEl = document.getElementById('diagOrigin');
+        const supportEl = document.getElementById('diagSupport');
+        const permEl = document.getElementById('diagPermission');
+        const portsEl = document.getElementById('diagPortsList');
+        const eventsEl = document.getElementById('diagEventLog');
+
+        // 1. Advertencia de contexto seguro (muy común en Android Chrome con file:// o content://)
+        if (!isSecure || proto === 'file:' || proto === 'content:') {
+          alertEl.className = 'diag-alert show';
+          alertEl.innerHTML =
+            '<strong>⚠ Atención en Android Chrome:</strong> Esta página se abrió en un contexto no seguro (<code>' +
+            proto +
+            '</code>). Google Chrome en Android <strong>bloquea Web MIDI en archivos locales</strong> (<code>file://</code> o <code>content://</code>). ' +
+            'Para que el Casio CT-S200 funcione por OTG, sube este archivo <code>piano-worship.html</code> gratis a <strong>GitHub Pages</strong> o <strong>Netlify Drop</strong> (HTTPS), ábrelo una vez y añádelo a tu pantalla de inicio.';
+        } else {
+          alertEl.className = 'diag-alert show ok';
+          alertEl.innerHTML =
+            '<strong>✓ Contexto seguro detectado (HTTPS):</strong> El entorno cumple con los requisitos de seguridad de Chrome para Web MIDI USB OTG. Si conectaste tu Casio CT-S200 después de abrir la página, pulsa <strong>"Re-escanear USB MIDI"</strong>.';
+        }
+
+        // 2. Campos de estado
+        secureEl.textContent = isSecure ? 'Sí (Seguro)' : 'No (Inseguro — Bloquea Web MIDI)';
+        secureEl.className = 'diag-val ' + (isSecure ? 'good' : 'bad');
+
+        originEl.textContent = originLabel;
+        originEl.className = 'diag-val';
+
+        const supported = 'requestMIDIAccess' in navigator;
+        supportEl.textContent = supported ? 'Soportado (navigator.requestMIDIAccess)' : 'No disponible en este navegador';
+        supportEl.className = 'diag-val ' + (supported ? 'good' : 'bad');
+
+        permEl.textContent = state.midiDiag.lastError
+          ? `${state.midiDiag.permissionStatus} — ${state.midiDiag.lastError}`
+          : state.midiDiag.permissionStatus;
+        permEl.className = 'diag-val ' + (
+          state.midiDiag.permissionStatus.startsWith('Concedido')
+            ? 'good'
+            : (state.midiDiag.lastError ? 'bad' : 'warn')
+        );
+
+        // 3. Puertos MIDI detectados
+        if (!state.midiDiag.ports.length) {
+          portsEl.textContent = 'No se detectaron puertos MIDI de entrada. Verifica que el cable Micro-USB + adaptador OTG sean de DATOS (no solo carga) y que el Casio CT-S200 esté encendido.';
+        } else {
+          portsEl.innerHTML = '';
+          state.midiDiag.ports.forEach((p, idx) => {
+            const row = document.createElement('div');
+            row.className = 'diag-port-row';
+            const left = document.createElement('span');
+            left.textContent = `${idx + 1}. ${p.name} (${p.manufacturer})`;
+            const right = document.createElement('span');
+            right.className = 'diag-port-meta';
+            right.textContent = `estado: ${p.state} • conexión: ${p.connection}`;
+            row.appendChild(left);
+            row.appendChild(right);
+            portsEl.appendChild(row);
+          });
+        }
+
+        // 4. Últimos 6 eventos MIDI en vivo
+        if (!state.midiDiag.events.length) {
+          eventsEl.textContent = 'Sin eventos musicales aún. Toca una tecla o pisa el pedal en tu teclado Casio...';
+        } else {
+          eventsEl.innerHTML = '';
+          state.midiDiag.events.forEach((ev) => {
+            const row = document.createElement('div');
+            row.className = 'diag-event-row';
+            const msg = document.createElement('span');
+            msg.textContent = ev.summary;
+            const time = document.createElement('span');
+            time.className = 'diag-time';
+            time.textContent = ev.ts;
+            row.appendChild(msg);
+            row.appendChild(time);
+            eventsEl.appendChild(row);
+          });
+        }
+      }
+
+      function renderMidiDiagnosticsIfOpen() {
+        const modal = document.getElementById('midiModal');
+        if (modal && modal.classList.contains('open')) {
+          renderMidiDiagnostics();
+        }
+      }
+
+      function openMidiModal() {
+        renderMidiDiagnostics();
+        document.getElementById('midiModal').classList.add('open');
+      }
+
+      function closeMidiModal() {
+        document.getElementById('midiModal').classList.remove('open');
+      }
+
+      /* =====================================================================
+       * 8. TECLADO VISUAL INTERACTIVO (MULTI-TOUCH + MONITOR MIDI + PC A–L)
+       * ===================================================================== */
+      const BLACK_MODS = new Set([1, 3, 6, 8, 10]);
+
+      function buildKeyboardUI() {
+        const container = document.getElementById('keyboard');
+        container.innerHTML = '';
+        state.keyElements.clear();
+
+        const startMidi = state.fullRange61 ? 36 : 48;
+        const endMidi = state.fullRange61 ? 96 : 84;
+
+        let whiteCount = 0;
+        for (let m = startMidi; m <= endMidi; m++) {
+          if (!BLACK_MODS.has(m % 12)) whiteCount++;
+        }
+
+        const whiteWidthPct = 100 / whiteCount;
+        const blackWidthPct = whiteWidthPct * 0.62;
+        let whiteIdx = 0;
+
+        for (let m = startMidi; m <= endMidi; m++) {
+          const isBlack = BLACK_MODS.has(m % 12);
+          const el = document.createElement('div');
+          el.dataset.midi = String(m);
+
+          if (isBlack) {
+            el.className = 'key-black';
+            el.style.width = `${blackWidthPct}%`;
+            el.style.left = `${(whiteIdx * whiteWidthPct) - (blackWidthPct / 2)}%`;
+          } else {
+            el.className = 'key-white';
+            el.style.width = `${whiteWidthPct}%`;
+            el.style.left = `${whiteIdx * whiteWidthPct}%`;
+            if (m % 12 === 0) {
+              const octave = Math.floor(m / 12) - 1;
+              el.textContent = `C${octave}`;
+            }
+            whiteIdx++;
+          }
+
+          container.appendChild(el);
+          state.keyElements.set(m, el);
+        }
+
+        refreshAllKeyVisuals();
+      }
+
+      function updateKeyVisual(midi) {
+        const el = state.keyElements.get(midi);
+        if (!el) return;
+        const active = isNotePhysicallyHeld(midi);
+        const sustained = state.sustainedNotes.has(midi);
+        el.classList.toggle('active', active);
+        el.classList.toggle('sustained', sustained && !active);
+      }
+
+      function refreshAllKeyVisuals() {
+        for (const midi of state.keyElements.keys()) {
+          updateKeyVisual(midi);
+        }
+      }
+
+      function updateSustainUI() {
+        const indicator = document.getElementById('sustainIndicator');
+        const touchBtn = document.getElementById('btnTouchSustain');
+        const active = isSustainActive();
+
+        indicator.classList.toggle('on', active);
+        indicator.innerHTML = active
+          ? '<span>●</span><span>SUSTAIN (CC 64): ON</span>'
+          : '<span>●</span><span>SUSTAIN (CC 64): OFF</span>';
+
+        touchBtn.classList.toggle('active', state.touchSustainDown);
+      }
+
+      function setupKeyboardPointerEvents() {
+        const container = document.getElementById('keyboard');
+
+        const getMidiFromPoint = (clientX, clientY) => {
+          const el = document.elementFromPoint(clientX, clientY);
+          if (el && el.dataset && el.dataset.midi) {
+            return Number(el.dataset.midi);
+          }
+          return null;
+        };
+
+        container.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          if (!state.audioReady) return;
+          const midi = getMidiFromPoint(e.clientX, e.clientY);
+          if (midi === null) return;
+
+          try { container.setPointerCapture(e.pointerId); } catch (_) {}
+          state.activePointers.set(e.pointerId, midi);
+          triggerNoteOn(midi, state.fixedVelocityValue, 'touch');
+        });
+
+        container.addEventListener('pointermove', (e) => {
+          if (!state.activePointers.has(e.pointerId)) return;
+          const prevMidi = state.activePointers.get(e.pointerId);
+          const newMidi = getMidiFromPoint(e.clientX, e.clientY);
+          if (newMidi !== prevMidi) {
+            if (prevMidi !== null) triggerNoteOff(prevMidi, 'touch');
+            if (newMidi !== null) {
+              state.activePointers.set(e.pointerId, newMidi);
+              triggerNoteOn(newMidi, state.fixedVelocityValue, 'touch');
+            } else {
+              state.activePointers.set(e.pointerId, null);
+            }
+          }
+        });
+
+        const endPointer = (e) => {
+          if (!state.activePointers.has(e.pointerId)) return;
+          const midi = state.activePointers.get(e.pointerId);
+          state.activePointers.delete(e.pointerId);
+          if (midi !== null) triggerNoteOff(midi, 'touch');
+        };
+
+        container.addEventListener('pointerup', endPointer);
+        container.addEventListener('pointercancel', endPointer);
+      }
+
+      // Teclado QWERTY de escritorio (A–L + Espacio) para pruebas inmediatas sin controlador MIDI
+      const PC_KEY_TO_MIDI = {
+        KeyA: 60, KeyW: 61, KeyS: 62, KeyE: 63, KeyD: 64,
+        KeyF: 65, KeyT: 66, KeyG: 67, KeyY: 68, KeyH: 69,
+        KeyU: 70, KeyJ: 71, KeyK: 72, KeyO: 73, KeyL: 74,
+        KeyP: 75, Semicolon: 76
+      };
+
+      window.addEventListener('keydown', (e) => {
+        if (e.code === 'Escape') {
+          closeMidiModal();
+          return;
+        }
+        if (!state.audioReady || e.repeat) return;
+        const tag = e.target && e.target.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+        if (e.code === 'Space') {
+          e.preventDefault();
+          setSustainPedal(true, 'pc');
+          return;
+        }
+        const midi = PC_KEY_TO_MIDI[e.code];
+        if (midi !== undefined) {
+          triggerNoteOn(midi, state.fixedVelocityValue, 'pc');
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        if (e.code === 'Space') {
+          setSustainPedal(false, 'pc');
+          return;
+        }
+        const midi = PC_KEY_TO_MIDI[e.code];
+        if (midi !== undefined) {
+          triggerNoteOff(midi, 'pc');
+        }
+      });
+
+      /* =====================================================================
+       * 9. SCREEN WAKE LOCK API (MANTENER PANTALLA ENCENDIDA EN VIVO)
+       * ===================================================================== */
+      async function requestWakeLock() {
+        const btn = document.getElementById('btnWakeLock');
+        const label = document.getElementById('wakeLockText');
+
+        if (!('wakeLock' in navigator)) {
+          label.textContent = 'No soportado';
+          showToast('Screen Wake Lock no está disponible en este navegador');
+          return;
+        }
+        try {
+          state.wakeLock = await navigator.wakeLock.request('screen');
+          state.wakeLockDesired = true;
+          btn.classList.add('active');
+          label.textContent = 'Pantalla: Siempre Activa';
+
+          state.wakeLock.addEventListener('release', () => {
+            if (!state.wakeLockDesired) {
+              btn.classList.remove('active');
+              label.textContent = 'Pantalla: Normal';
+            }
+          });
+        } catch (_) {
+          btn.classList.remove('active');
+          label.textContent = 'Pantalla: Normal';
+          showToast('Abre por HTTPS en Chrome para activar Pantalla Siempre Activa');
+        }
+      }
+
+      async function toggleWakeLock() {
+        const btn = document.getElementById('btnWakeLock');
+        const label = document.getElementById('wakeLockText');
+
+        if (state.wakeLockDesired && state.wakeLock) {
+          state.wakeLockDesired = false;
+          try { await state.wakeLock.release(); } catch (_) {}
+          state.wakeLock = null;
+          btn.classList.remove('active');
+          label.textContent = 'Pantalla: Normal';
+        } else {
+          await requestWakeLock();
+        }
+      }
+
+      document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible') {
+          if (audioCtx && audioCtx.state === 'suspended') {
+            try { await audioCtx.resume(); } catch (_) {}
+          }
+          if (state.wakeLockDesired) {
+            await requestWakeLock();
+          }
+        }
+      });
+
+      /* =====================================================================
+       * 10. CONSTRUCCIÓN DE INTERFAZ Y VINCULACIÓN DE CONTROLES
+       * ===================================================================== */
+      function paintRangeFill(input) {
+        const min = Number(input.min || 0);
+        const max = Number(input.max || 100);
+        const val = Number(input.value);
+        const pct = ((val - min) / (max - min)) * 100;
+        input.style.setProperty('--fill', `${pct}%`);
+      }
+
+      function buildPadGrid() {
+        const grid = document.getElementById('padGrid');
+        grid.innerHTML = '';
+        KEYS_INFO.forEach(k => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'pad-key';
+          btn.dataset.key = String(k.idx);
+          btn.innerHTML = `<span class="note-main">${k.name}</span><span class="note-alt">${k.alt}</span>`;
+          btn.addEventListener('click', () => selectPadKey(k.idx));
+          grid.appendChild(btn);
+        });
+      }
+
+      function bindControls() {
+        // Gesto de usuario: inicializa AudioContext Y Web MIDI directamente en el clic
+        document.getElementById('btnStartAudio').addEventListener('click', async () => {
+          const overlay = document.getElementById('startOverlay');
+          const midiPromise = initWebMIDI(false);
+          await initAudioEngine();
+          overlay.classList.add('hidden');
+          await midiPromise;
+          showToast('Motor activo — Felt Piano & Warm Pad listos');
+        });
+
+        // Diagnóstico MIDI y Reconexión OTG
+        document.getElementById('midiBadge').addEventListener('click', openMidiModal);
+        document.getElementById('btnCloseMidiModal').addEventListener('click', closeMidiModal);
+        document.getElementById('btnModalCloseFooter').addEventListener('click', closeMidiModal);
+        document.getElementById('midiModal').addEventListener('click', (e) => {
+          if (e.target.id === 'midiModal') closeMidiModal();
+        });
+        document.getElementById('btnReconnectMidi').addEventListener('click', () => initWebMIDI(true));
+        document.getElementById('btnModalRescan').addEventListener('click', () => initWebMIDI(true));
+
+        // Guardar archivo HTML autocontenido
+        document.getElementById('btnExportHtml').addEventListener('click', exportStandaloneHTML);
+
+        // Controles del Warm Pad
+        document.getElementById('btnModeMajor').addEventListener('click', () => switchPadMode('major'));
+        document.getElementById('btnModeMinor').addEventListener('click', () => switchPadMode('minor'));
+        document.getElementById('btnStopPad').addEventListener('click', stopPadSmoothly);
+
+        // 1. Volumen Piano
+        const slPiano = document.getElementById('sliderPianoVol');
+        const valPiano = document.getElementById('valPianoVol');
+        paintRangeFill(slPiano);
+        slPiano.addEventListener('input', () => {
+          paintRangeFill(slPiano);
+          const v = Number(slPiano.value);
+          state.pianoVol = v / 100;
+          valPiano.textContent = `${v}%`;
+          if (pianoGainNode && audioCtx) {
+            pianoGainNode.gain.setTargetAtTime(state.pianoVol, audioCtx.currentTime, 0.02);
+          }
+        });
+
+        // 2. Volumen Warm Pad
+        const slPad = document.getElementById('sliderPadVol');
+        const valPad = document.getElementById('valPadVol');
+        paintRangeFill(slPad);
+        slPad.addEventListener('input', () => {
+          paintRangeFill(slPad);
+          const v = Number(slPad.value);
+          state.padVol = v / 100;
+          valPad.textContent = `${v}%`;
+          if (padGainNode && audioCtx) {
+            padGainNode.gain.setTargetAtTime(state.padVol * 0.58, audioCtx.currentTime, 0.03);
+          }
+        });
+
+        // 3. Calidez Piano (Filtro Low-Pass)
+        const slWarmth = document.getElementById('sliderWarmth');
+        const valWarmth = document.getElementById('valWarmth');
+        paintRangeFill(slWarmth);
+        const updateWarmthDisplay = (v) => {
+          const freq = warmthSliderToFreq(v);
+          valWarmth.textContent = freq >= 1000 ? `${(freq / 1000).toFixed(1)} kHz` : `${Math.round(freq)} Hz`;
+          if (pianoWarmthFilter && audioCtx) {
+            pianoWarmthFilter.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.03);
+          }
+        };
+        updateWarmthDisplay(Number(slWarmth.value));
+        slWarmth.addEventListener('input', () => {
+          paintRangeFill(slWarmth);
+          state.warmthSlider = Number(slWarmth.value);
+          updateWarmthDisplay(state.warmthSlider);
+        });
+
+        // 4. Suavidad Warm Pad (280 Hz – 2200 Hz, default ~720 Hz)
+        const slPadFilter = document.getElementById('sliderPadFilter');
+        const valPadFilter = document.getElementById('valPadFilter');
+        paintRangeFill(slPadFilter);
+        const updatePadFilterDisplay = (v) => {
+          const freq = padFilterSliderToFreq(v);
+          valPadFilter.textContent = freq >= 1000 ? `${(freq / 1000).toFixed(2)} kHz` : `${Math.round(freq)} Hz`;
+          if (padLowPass && audioCtx) {
+            padLowPass.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.045);
+          }
+        };
+        updatePadFilterDisplay(Number(slPadFilter.value));
+        slPadFilter.addEventListener('input', () => {
+          paintRangeFill(slPadFilter);
+          state.padFilterSlider = Number(slPadFilter.value);
+          updatePadFilterDisplay(state.padFilterSlider);
+        });
+
+        // 5. Reverb Ambiental (Convolver compartido de 3.0 s)
+        const slRev = document.getElementById('sliderReverb');
+        const valRev = document.getElementById('valReverb');
+        paintRangeFill(slRev);
+        slRev.addEventListener('input', () => {
+          paintRangeFill(slRev);
+          const v = Number(slRev.value);
+          state.reverbMix = v / 100;
+          valRev.textContent = `${v}%`;
+          if (sharedReverbReturn && audioCtx) {
+            sharedReverbReturn.gain.setTargetAtTime(state.reverbMix * 0.88, audioCtx.currentTime, 0.035);
+          }
+        });
+
+        // 6. Sensibilidad Fija MIDI (Casio CT-S200)
+        const chkFixed = document.getElementById('chkFixedVel');
+        const slVel = document.getElementById('sliderVelOverride');
+        const valVel = document.getElementById('valVelOverride');
+        const velGroup = document.getElementById('velControlGroup');
+        paintRangeFill(slVel);
+
+        chkFixed.addEventListener('change', () => {
+          state.fixedVelocityEnabled = chkFixed.checked;
+          velGroup.classList.toggle('vel-disabled', !chkFixed.checked);
+          valVel.textContent = chkFixed.checked ? `${state.fixedVelocityValue} / 127` : 'Dinámica';
+        });
+
+        slVel.addEventListener('input', () => {
+          paintRangeFill(slVel);
+          state.fixedVelocityValue = Number(slVel.value);
+          if (state.fixedVelocityEnabled) {
+            valVel.textContent = `${state.fixedVelocityValue} / 127`;
+          }
+        });
+
+        // Alternar fuente sonora del piano (Salamander vs Felt Synth offline)
+        document.getElementById('btnSoundMode').addEventListener('click', () => {
+          if (!state.samplesLoaded) {
+            showToast('Usando Felt Synth cálido (modo offline)');
+            return;
+          }
+          state.preferSamples = !state.preferSamples;
+          updateSoundModeUI();
+        });
+
+        // Wake Lock y Pánico
+        document.getElementById('btnWakeLock').addEventListener('click', toggleWakeLock);
+        document.getElementById('btnPanic').addEventListener('click', () => panicAllNotesOff(true));
+
+        // Controles del teclado inferior (Invertir pedal, Sustain táctil, Rango 61 teclas)
+        document.getElementById('btnInvertPedal').addEventListener('click', toggleInvertSustainPedal);
+        document.getElementById('btnTouchSustain').addEventListener('click', () => {
+          setSustainPedal(!state.touchSustainDown, 'touch');
+        });
+
+        const btnRange = document.getElementById('btnRangeToggle');
+        btnRange.addEventListener('click', () => {
+          state.fullRange61 = !state.fullRange61;
+          btnRange.textContent = state.fullRange61
+            ? 'Vista: 61 Teclas (CT-S200)'
+            : 'Vista: 3 Octavas (Táctil)';
+          buildKeyboardUI();
+        });
+      }
+
+      // Inicialización inmediata de la interfaz
+      buildPadGrid();
+      buildKeyboardUI();
+      setupKeyboardPointerEvents();
+      bindControls();
+    })();
+  </script>
+</body>
+</html>
